@@ -1,4 +1,3 @@
-import random
 from Utility import random_start_queens, safe_queens_heuristic_cost, best_neighbour_queens
 
 class Hill_Climbing():

@@ -1,28 +1,23 @@
 from collections import deque
-from Utility import is_goal_state
+from Utility import is_goal_state, total_state, is_queen_safe_col
 import time
-import sys
 
 class Breadth_First_Search():
     ''''Implement breadth first search'''
     def __init__(self):
         self.frontier = deque()
         self.explored = set()
-        self.solutions = set()
+        self.solutions = list()
         self.nSolution = 0
         self.state = 1
         self.queen_position = 0
 
     def bfs_search(self, n_queen):
         #initial state no queens
-        total_state = 0
         n_queen_square = n_queen**2
 
-        # display the number of state expected - range is from 0 to n_queen level of depth
-        for i in range(n_queen+1):
-            total_state += n_queen**i
-        print("Total states for %d queens: %d" % (n_queen, total_state))
-
+        #print out total state
+        total_state(n_queen)
         #push row 0 state to frontier queue
         for index in range(n_queen):
             self.frontier.append([(self.queen_position)])
@@ -32,6 +27,7 @@ class Breadth_First_Search():
         initial_queens = self.frontier[0]
         if len(initial_queens)==n_queen and is_goal_state(initial_queens, n_queen):
             self.nSolution += 1
+            self.solutions.append(initial_queens)
 
         depth = 2
         last_state = self.state
@@ -42,6 +38,7 @@ class Breadth_First_Search():
             branch_size = n_queen**depth
             last_log_time = time.time()
 
+            #and len(self.frontier)!=0
             while branch < branch_size:
                 if  len(self.frontier)==0:
                     return 0
@@ -56,7 +53,8 @@ class Breadth_First_Search():
                     #if temp_queens not in self.frontier or hash(tuple(temp_queens)) not in self.explored:
                     if len(temp_queens)==n_queen and is_goal_state(temp_queens, n_queen):
                         self.nSolution += 1
-                        self.solutions.add(tuple(temp_queens))
+                        self.solutions.append(temp_queens)
+                    # if len(temp_queens) < n_queen and is_queen_safe_col(temp_queens, n_queen):
                     self.frontier.append(temp_queens)
                     queen_position = (queen_position + 1)%n_queen_square
                     self.state += 1
@@ -70,6 +68,6 @@ class Breadth_First_Search():
                     branch += 1
             self.queen_position = self.queen_position + n_queen
             depth += 1
-        print(self.nSolution)
+        print("Number of solutions found: %d" % self.nSolution)
         return self.solutions
 

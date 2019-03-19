@@ -1,6 +1,7 @@
 from Breadth_First_Search import Breadth_First_Search
 from Hill_Climbing import Hill_Climbing
 from Simulated_Annealing import Simulated_Annealing
+from Utility import print_solutions
 import time
 
 def main():
@@ -17,8 +18,10 @@ def main():
             result = solver.bfs_search(n_queen)
             duration = time.time() - start_time
 
-            print("Total solutions found: %s" % result)
+            print("Solutions found: %s" % result)
             print("Time taken: %f seconds" % duration)
+            if not result==[]:
+                print_solutions(result, n_queen)
         elif option=='2':
             print("Enter the number of queens for your solver:")
             n_queen = int(input())
@@ -26,8 +29,10 @@ def main():
             solver = Hill_Climbing()
             result = solver.hill_climbing_search(n_queen)
             duration = time.time() - start_time
-            print("Total solutions found: %s" % result)
+            print("One solution found: %s" % result)
             print("Time taken: %f seconds" % duration)
+            if result!=None:
+                print_solutions(result, n_queen)
         elif option=='3':
             print("Enter the number of queens for your solver:")
             n_queen = int(input())
@@ -35,12 +40,11 @@ def main():
             solver = Simulated_Annealing()
             result = solver.simulated_annealing_search(n_queen)
             duration = time.time() - start_time
-
-            print("Total solutions found: %s" % result)
+            print("One solution found: %s" % result)
             print("Time taken: %f seconds" % duration)
+            if result!=None:
+                print_solutions(result, n_queen)
         elif option=='4':
             start = False
         else:
-            print("Invalid input.")
-
-
+            print("Invalid option.")
