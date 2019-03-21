@@ -8,7 +8,7 @@ class Simulated_Annealing():
     def __init__(self):
         self.temp_max = 30000
         self.temp_min = 3.0
-        self.temp_decay_alpha = 0.98
+        self.temp_decay_alpha = 0.998
         self.repeat = 0
 
     def adjust_temp(self, temp, start_time):

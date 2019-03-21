@@ -32,16 +32,25 @@ class Breadth_First_Search():
         depth = 2
         last_state = self.state
         log_period = 30
+
         while depth <= n_queen:
-            branch = 0
+            branch_node = 0
             #branch size = b to the power of the current depth
-            branch_size = n_queen**depth
+            #branch_size = n_queen**depth
+            branch_size = n_queen
+            for i in range(0, depth-1):
+                branch_size *= (n_queen-i)
+            # if depth == 3:
+            #     branch_size = (2 * (n_queen - 2) + (n_queen - 2) * (n_queen - 3)) * n_queen
+            # else:
+            #     branch_size = n_queen * n_queen
+
             last_log_time = time.time()
 
-            #and len(self.frontier)!=0
-            while branch < branch_size:
-                if  len(self.frontier)==0:
-                    return 0
+            #
+            while branch_node < branch_size and len(self.frontier)!=0:
+                # if  len(self.frontier)==0:
+                #     return 0
 
                 current_queens = self.frontier.popleft()
                 #self.explored.add(hash(tuple(current_node)))
@@ -54,8 +63,8 @@ class Breadth_First_Search():
                     if len(temp_queens)==n_queen and is_goal_state(temp_queens, n_queen):
                         self.nSolution += 1
                         self.solutions.append(temp_queens)
-                    # if len(temp_queens) < n_queen and is_queen_safe_col(temp_queens, n_queen):
-                    self.frontier.append(temp_queens)
+                    if len(temp_queens) < n_queen and is_queen_safe_col(temp_queens, n_queen):
+                        self.frontier.append(temp_queens)
                     queen_position = (queen_position + 1)%n_queen_square
                     self.state += 1
                     # if (time.time() - last_log_time >= log_period):
@@ -65,7 +74,7 @@ class Breadth_First_Search():
                     #     print("Frontier: %d with size of %.6f gb, Explored: %d" % (len(self.frontier), sys.getsizeof(self.frontier)/1000000000, len(self.explored)))
                     #     last_log_time = time.time()
                     #     last_state = self.state
-                    branch += 1
+                    branch_node += 1
             self.queen_position = self.queen_position + n_queen
             depth += 1
         print("Number of solutions found: %d" % self.nSolution)
