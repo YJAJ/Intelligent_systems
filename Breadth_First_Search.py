@@ -3,7 +3,7 @@ from Utility import is_goal_state, total_state, is_queen_safe_col
 import time
 
 class Breadth_First_Search():
-    ''''Implement breadth first search'''
+    ''''Implement pruned breadth first search'''
     def __init__(self):
         self.frontier = deque()
         self.explored = set()
@@ -79,4 +79,3 @@ class Breadth_First_Search():
             depth += 1
         print("Number of solutions found: %d" % self.nSolution)
         return self.solutions
-

@@ -2,6 +2,17 @@ import random
 import operator
 from collections import defaultdict
 
+def choose(n,k):
+    if k ==0:
+        return 1
+    return (n*choose(n-1, k-1))//k
+
+def total_original_state(no_queen):
+    # display the number of state expected - range is from 0 to n_queen level of depth
+    total_original_state = choose(no_queen*no_queen, no_queen)
+    print("Total states for %d queens: %d" % (no_queen, total_original_state))
+    return total_original_state
+
 def total_state(no_queen):
     # display the number of state expected - range is from 0 to n_queen level of depth
     total_state = 0
@@ -92,6 +103,8 @@ def safe_queens_heuristic_cost(queens_state, no_queen):
     return not_safe
 
 def best_neighbour_queens(current_queens, no_queen, current_heuristic_cost):
+    if len(current_queens)==1:
+        return current_queens
     current_neighbours = list()
     #make a combination of one column move for the queen on each row
     for row_index in range(no_queen):
@@ -122,18 +135,37 @@ def select_best_neighbour(current_neighbours, no_queen):
     return best_neighbour
 
 def random_neighbour_queens(current_queens, no_queen):
-    current_neighbour = current_queens
-    #randomly move columns for the queen on each row
+    if len(current_queens)==1:
+        return current_queens
+    current_neighbours = list()
+    #make a combination of one column move for the queen on each row
     for row_index in range(no_queen):
-        left = current_queens[row_index]
-        right = current_queens[row_index]
-        if current_queens[row_index]%no_queen!=0:
-            left = current_queens[row_index]-1
-        if current_queens[row_index]%no_queen!=no_queen-1:
-            right = current_queens[row_index]+1
-        current_neighbour[row_index] = random.choice([left, right])
-    new_queens = current_neighbour
-    return new_queens
+        current_neighbour = current_queens.copy()
+        col_set = set()
+        for i in range(no_queen):
+            col_set.add(i)
+        current_col = current_queens[row_index]%no_queen
+        col_set.remove(current_col)
+        for remainder in col_set:
+            new_position = row_index*no_queen+remainder
+            current_neighbour[row_index] = new_position
+            current_neighbours.append(current_neighbour.copy())
+
+    # select a random neighbour from the list
+    random_neighbour = random.choice(current_neighbours)
+    return random_neighbour
+    # current_neighbour = current_queens
+    # #randomly move columns for the queen on each row
+    # for row_index in range(no_queen):
+    #     left = current_queens[row_index]
+    #     right = current_queens[row_index]
+    #     if current_queens[row_index]%no_queen!=0:
+    #         left = current_queens[row_index]-1
+    #     if current_queens[row_index]%no_queen!=no_queen-1:
+    #         right = current_queens[row_index]+1
+    #     current_neighbour[row_index] = random.choice([left, right])
+    # new_queens = current_neighbour
+    # return new_queens
 
 def print_solutions(result, n_queen):
     while True:
