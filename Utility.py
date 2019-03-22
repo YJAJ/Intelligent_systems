@@ -1,5 +1,6 @@
 import random
-import numpy as np
+import operator
+from collections import defaultdict
 
 def total_state(no_queen):
     # display the number of state expected - range is from 0 to n_queen level of depth
@@ -90,28 +91,35 @@ def safe_queens_heuristic_cost(queens_state, no_queen):
 
     return not_safe
 
-def best_neighbour_queens(current_queens, no_queen):
-    current_neighbour = current_queens
-    current_heuristic_cost = safe_queens_heuristic_cost(current_queens, no_queen)
-    neighbour_generator = 0
-    while neighbour_generator < 100:
-        #randomly move columns for the queen on each row2
-        for row_index in range(no_queen):
-            left = current_queens[row_index]
-            right = current_queens[row_index]
-            if current_queens[row_index]%no_queen!=0:
-                left = current_queens[row_index]-1
-            if current_queens[row_index]%no_queen!=no_queen-1:
-                right = current_queens[row_index]+1
-            current_neighbour[row_index] = random.choice([left, right])
-        new_heuristic_cost = safe_queens_heuristic_cost(current_neighbour, no_queen)
-        neighbour_generator += 1
-        if new_heuristic_cost < current_heuristic_cost:
-            current_heuristic_cost = new_heuristic_cost
-            new_queens = current_neighbour
-            return new_queens
+def best_neighbour_queens(current_queens, no_queen, current_heuristic_cost):
+    current_neighbours = list()
+    #make a combination of one column move for the queen on each row
+    for row_index in range(no_queen):
+        current_neighbour = current_queens.copy()
+        col_set = set()
+        for i in range(no_queen):
+            col_set.add(i)
+        current_col = current_queens[row_index]%no_queen
+        col_set.remove(current_col)
+        for remainder in col_set:
+            new_position = row_index*no_queen+remainder
+            current_neighbour[row_index] = new_position
+            current_neighbours.append(current_neighbour.copy())
 
-    return current_queens
+    # select the neighbour with the lowest heuristic cost
+    best_neighbour = select_best_neighbour(current_neighbours, no_queen)
+
+        #if new_heuristic_cost < current_heuristic_cost:
+        # current_heuristic_cost = new_heuristic_cost
+    return best_neighbour
+
+def select_best_neighbour(current_neighbours, no_queen):
+    neighbours_dict = defaultdict()
+    for current_neighbour in current_neighbours:
+        new_heuristic_cost = safe_queens_heuristic_cost(current_neighbour, no_queen)
+        neighbours_dict[new_heuristic_cost] = current_neighbour
+    best_neighbour= max(neighbours_dict.items(), key = operator.itemgetter(0))[1]
+    return best_neighbour
 
 def random_neighbour_queens(current_queens, no_queen):
     current_neighbour = current_queens
