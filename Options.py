@@ -15,8 +15,8 @@ def main():
             print("Enter the number of queens for your solver:")
             n_queen = int(input())
             start_time = time.time()
-            solver = Breadth_First_Search_Original()
-            result = solver.bfs_search_original(n_queen)
+            solver = Breadth_First_Search()
+            result = solver.bfs_search(n_queen)
             duration = time.time() - start_time
 
             print("Solutions found: %s" % result)

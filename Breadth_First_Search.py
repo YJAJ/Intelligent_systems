@@ -20,7 +20,7 @@ class Breadth_First_Search():
         total_state(n_queen)
         #push row 0 state to frontier queue
         for index in range(n_queen):
-            self.frontier.append([(self.queen_position)])
+            self.frontier.append([self.queen_position])
             self.queen_position =  (self.queen_position + 1)%n_queen_square
             self.state += 1
 
@@ -58,7 +58,7 @@ class Breadth_First_Search():
                 queen_position = self.queen_position
                 for index in range(n_queen):
                     temp_queens = current_queens.copy()
-                    temp_queens.append((queen_position))
+                    temp_queens.append(queen_position)
                     #if temp_queens not in self.frontier or hash(tuple(temp_queens)) not in self.explored:
                     if len(temp_queens)==n_queen and is_goal_state(temp_queens, n_queen):
                         self.nSolution += 1

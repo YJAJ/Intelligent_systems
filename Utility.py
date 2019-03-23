@@ -9,8 +9,10 @@ def choose(n,k):
 
 def total_original_state(no_queen):
     # display the number of state expected - range is from 0 to n_queen level of depth
-    total_original_state = choose(no_queen*no_queen, no_queen)
-    print("Total states for %d queens: %d" % (no_queen, total_original_state))
+    total_original_state = (no_queen*no_queen)**no_queen
+    #for i in range(1, no_queen+1):
+    #total_original_state = choose(no_queen*no_queen, no_queen)
+    #print("Total states for %d queens: %d" % (no_queen, total_original_state))
     return total_original_state
 
 def total_state(no_queen):
