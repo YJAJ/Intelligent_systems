@@ -1,9 +1,8 @@
 from collections import deque
 from Utility import is_goal_state, total_state, is_queen_safe_col
-import time
 
 class Breadth_First_Search():
-    ''''Implement pruned breadth first search'''
+    '''Implement pruned breadth first search'''
     def __init__(self):
         self.frontier = deque()
         self.explored = set()
@@ -13,69 +12,54 @@ class Breadth_First_Search():
         self.queen_position = 0
 
     def bfs_search(self, n_queen):
-        #initial state no queens
+        # initial state no queens
         n_queen_square = n_queen**2
-
-        #print out total state
+        # calculate and print out total state
         total_state(n_queen)
-        #push row 0 state to frontier queue
+        # push first row's state to frontier queue
         for index in range(n_queen):
             self.frontier.append([self.queen_position])
             self.queen_position =  (self.queen_position + 1)%n_queen_square
             self.state += 1
-
+        # check whether the initial state is the goal state
         initial_queens = self.frontier[0]
         if len(initial_queens)==n_queen and is_goal_state(initial_queens, n_queen):
             self.nSolution += 1
             self.solutions.append(initial_queens)
-
+        # start from level 2 since the empty initial state was level 0 and the one queen on each row was level 1
         depth = 2
-        last_state = self.state
-        log_period = 30
-
+        # while depth level is smaller and equal to the number of queen
         while depth <= n_queen:
             branch_node = 0
-            #branch size = b to the power of the current depth
+            # branch size = b to the power of the current depth
             #branch_size = n_queen**depth
             branch_size = n_queen
             for i in range(0, depth-1):
                 branch_size *= (n_queen-i)
-            # if depth == 3:
-            #     branch_size = (2 * (n_queen - 2) + (n_queen - 2) * (n_queen - 3)) * n_queen
-            # else:
-            #     branch_size = n_queen * n_queen
 
-            last_log_time = time.time()
-
-            #
+            # while branch size is smaller than the expected number of states
             while branch_node < branch_size and len(self.frontier)!=0:
-                # if  len(self.frontier)==0:
-                #     return 0
-
                 current_queens = self.frontier.popleft()
+                # explored set is not required where row separation and column check is undertaken
                 #self.explored.add(hash(tuple(current_node)))
-                #print(self.explored)
+
                 queen_position = self.queen_position
                 for index in range(n_queen):
                     temp_queens = current_queens.copy()
                     temp_queens.append(queen_position)
+                    # commented out - there will be no equivalent sets given the conditions
                     #if temp_queens not in self.frontier or hash(tuple(temp_queens)) not in self.explored:
                     if len(temp_queens)==n_queen and is_goal_state(temp_queens, n_queen):
                         self.nSolution += 1
                         self.solutions.append(temp_queens)
+                    # add the new queens only if queens are safe in a column-wise check
                     if len(temp_queens) < n_queen and is_queen_safe_col(temp_queens, n_queen):
                         self.frontier.append(temp_queens)
                     queen_position = (queen_position + 1)%n_queen_square
                     self.state += 1
-                    # if (time.time() - last_log_time >= log_period):
-                    #     states_done = self.state - last_state
-                    #     #frontier_bytes = sys.getsizeof(self.frontier) + sys.getsizeof(self.frontier[0])
-                    #     print("States checked: %d, %d in last %d seconds, %.2f%% done of total" % (self.state, states_done, log_period, 100. * (float(self.state)/float(total_state))))
-                    #     print("Frontier: %d with size of %.6f gb, Explored: %d" % (len(self.frontier), sys.getsizeof(self.frontier)/1000000000, len(self.explored)))
-                    #     last_log_time = time.time()
-                    #     last_state = self.state
                     branch_node += 1
             self.queen_position = self.queen_position + n_queen
             depth += 1
+        # print the total number of solutions found and return the list of solutions
         print("Number of solutions found: %d" % self.nSolution)
         return self.solutions

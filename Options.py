@@ -12,17 +12,23 @@ def main():
         print("1: Breadth First Search, 2: Hill Climbing, 3: Simulated Annealing, 4: Quit")
         option = input()
         if option=='1':
-            print("Enter the number of queens for your solver:")
-            n_queen = int(input())
-            start_time = time.time()
-            solver = Breadth_First_Search()
-            result = solver.bfs_search(n_queen)
-            duration = time.time() - start_time
+            option1 = True
+            while option1:
+                print("Enter the number of queens for your solver:")
+                n_queen = int(input())
+                if n_queen <= 0:
+                    print("Invalid option.")
+                else:
+                    start_time = time.time()
+                    solver = Breadth_First_Search()
+                    result = solver.bfs_search(n_queen)
+                    duration = time.time() - start_time
 
-            print("Solutions found: %s" % result)
-            print("Time taken: %f seconds" % duration)
-            if not result==[]:
-                print_solutions(result, n_queen)
+                    print("Solutions found: %s" % result)
+                    print("Time taken: %f seconds" % duration)
+                    if not result==[]:
+                        print_solutions(result, n_queen)
+                    option1 = False
         elif option=='2':
             option2 = True
             while option2:
@@ -30,18 +36,19 @@ def main():
                 n_queen = int(input())
                 if n_queen<=0:
                     print("Invalid option.")
-                    option2 = False
                 else:
                     start_time = time.time()
                     solver = Hill_Climbing()
+                    #for i in range(100):
                     result = solver.hill_climbing_search(n_queen)
-                    duration = time.time() - start_time
                     print("One result found: %s" % result)
-                    print("Time taken: %f seconds" % duration)
-                    if result!=None:
-                        # print a solution or local maximum
-                        print_solutions(result, n_queen)
 
+                    duration = time.time() - start_time
+                    print("Time taken: %f seconds" % duration)
+                    # if result!=None:
+                    #     # print a solution or local maximum
+                    #     print_solutions(result, n_queen)
+                    option2 = False
         elif option=='3':
             option3 = True
             while option3:
@@ -49,7 +56,6 @@ def main():
                 n_queen = int(input())
                 if n_queen<=0:
                     print("Invalid option.")
-                    option3 = False
                 else:
                     start_time = time.time()
                     solver = Simulated_Annealing()
@@ -59,9 +65,7 @@ def main():
                     print("Time taken: %f seconds" % duration)
                     if result!=None:
                         print_solutions(result, n_queen)
-                        # print a solution or local maximum
-                        print_solutions(result, n_queen)
-                        # draw a graph with the number of iteration on x axis and heuristic cost on y axis
+                    option3 = False
         elif option=='4':
             start = False
         else:

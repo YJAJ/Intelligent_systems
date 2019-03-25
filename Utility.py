@@ -8,11 +8,8 @@ def choose(n,k):
     return (n*choose(n-1, k-1))//k
 
 def total_original_state(no_queen):
-    # display the number of state expected - range is from 0 to n_queen level of depth
+    # display the number of state expected
     total_original_state = (no_queen*no_queen)**no_queen
-    #for i in range(1, no_queen+1):
-    #total_original_state = choose(no_queen*no_queen, no_queen)
-    #print("Total states for %d queens: %d" % (no_queen, total_original_state))
     return total_original_state
 
 def total_state(no_queen):
@@ -40,25 +37,6 @@ def is_goal_state(queens_state, no_queen):
             if queens_state[i]//no_queen == queens_state[j]//no_queen:
                 goal_state = False
                 return goal_state
-
-    # rows = [each_node[0] for each_node in node_state]
-    # columns = [each_node[1] for each_node in node_state]
-
-    # # check row and column positions of n queens
-    # for i in range(len(rows) - 1):
-    #     for j in range(i + 1, len(columns)):
-    #         if rows[i]==rows[j]:
-    #             goal_state = False
-    #             return goal_state
-    #         if columns[i]==columns[j]:
-    #             goal_state = False
-    #             return goal_state
-    # #check diagonal positions of n queens
-    # for i in range(len(rows)-1):
-    #     for j in range(i+1,len(columns)):
-    #         if abs(rows[i] - rows[j]) == abs(columns[i] - columns[j]):
-    #             goal_state = False
-    #             return goal_state
 
     return goal_state
 
@@ -103,6 +81,20 @@ def safe_queens_heuristic_cost(queens_state, no_queen):
                 not_safe += 1
 
     return not_safe
+
+def best_random_neighbour_queens(current_queens, no_queen, current_heuristic_cost):
+    if len(current_queens)==1:
+        return current_queens
+    current_neighbours = list()
+    #make a combination of one column move for the queen on each row
+    for row_index in range(no_queen*5):
+        current_neighbour = random_start_queens(no_queen)
+        current_neighbours.append(current_neighbour.copy())
+
+    # select the neighbour with the lowest heuristic cost
+    best_neighbour = select_best_neighbour(current_neighbours, no_queen)
+
+    return best_neighbour
 
 def best_neighbour_queens(current_queens, no_queen, current_heuristic_cost):
     if len(current_queens)==1:
