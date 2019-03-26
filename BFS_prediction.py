@@ -1,4 +1,3 @@
-import operator
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
@@ -6,7 +5,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.preprocessing import PolynomialFeatures
 
-#seed the random in case of needing reproduction
+#seed the random number in case of needing reproduction
 np.random.seed(21)
 # Pruned BFS data x - n queen, y - time taken
 x = np.array([1,2,3,4,5,6,7,8,9,10,11])

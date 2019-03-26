@@ -31,24 +31,26 @@ class Breadth_First_Search():
         # while depth level is smaller and equal to the number of queen
         while depth <= n_queen:
             branch_node = 0
-            # branch size = b to the power of the current depth
-            #branch_size = n_queen**depth
+            # branch size represents the number of nodes on the same depth
+            # with pruning, the size of nodes equals to n queen is multiplied by n queen subtracting each one for each depth
             branch_size = n_queen
             for i in range(0, depth-1):
                 branch_size *= (n_queen-i)
 
-            # while branch size is smaller than the expected number of states
+            # while branch size is smaller than the expected number of branch nodes and frontier is not empty
             while branch_node < branch_size and len(self.frontier)!=0:
                 current_queens = self.frontier.popleft()
                 # explored set is not required where row separation and column check is undertaken
-                #self.explored.add(hash(tuple(current_node)))
-
+                # child's node
                 queen_position = self.queen_position
+                # if the child node is not in the current node, the child node can be appended to the list of nodes for later expansion
                 for index in range(n_queen):
                     temp_queens = current_queens.copy()
                     temp_queens.append(queen_position)
-                    # commented out - there will be no equivalent sets given the conditions
-                    #if temp_queens not in self.frontier or hash(tuple(temp_queens)) not in self.explored:
+                    # no check required for frontier or explored set
+                    # because there will be no equivalent sets given the conditions of pruning
+                    # check whether the current expanded nodes are the goal state.
+                    # if so, add one to solution and append the solution to the solution list.
                     if len(temp_queens)==n_queen and is_goal_state(temp_queens, n_queen):
                         self.nSolution += 1
                         self.solutions.append(temp_queens)

@@ -2,11 +2,6 @@ import random
 import operator
 from collections import defaultdict
 
-def choose(n,k):
-    if k ==0:
-        return 1
-    return (n*choose(n-1, k-1))//k
-
 def total_original_state(no_queen):
     # display the number of state expected
     total_original_state = (no_queen*no_queen)**no_queen
@@ -33,7 +28,7 @@ def is_goal_state(queens_state, no_queen):
             if abs(queens_state[i]//no_queen-queens_state[j]//no_queen)==abs(queens_state[i]%no_queen-queens_state[j]%no_queen):
                 goal_state = False
                 return goal_state
-            # check row overlapping
+            # check row overlapping - unlikely to happen for pruned models
             if queens_state[i]//no_queen == queens_state[j]//no_queen:
                 goal_state = False
                 return goal_state
@@ -41,6 +36,7 @@ def is_goal_state(queens_state, no_queen):
     return goal_state
 
 def is_queen_safe_col(queens_state, no_queen):
+    # same with the function above but only for column check
     safe_state = True
 
     for i in range(len(queens_state) - 1):
@@ -49,13 +45,10 @@ def is_queen_safe_col(queens_state, no_queen):
             if queens_state[i]%no_queen == queens_state[j]%no_queen:
                 safe_state = False
                 return safe_state
-            # check diagonal overlapping
-            # if abs(queens_state[i]//no_queen-queens_state[j]//no_queen)==abs(queens_state[i]%no_queen-queens_state[j]%no_queen):
-            #     safe_state = False
-            #     return safe_state
     return safe_state
 
 def random_start_queens(n_queen):
+    # initialise queens randomly on each row
     queens = []
     for row_index in range(n_queen):
         lower = n_queen*(row_index)
@@ -65,42 +58,43 @@ def random_start_queens(n_queen):
     return queens
 
 def safe_queens_heuristic_cost(queens_state, no_queen):
+    # similar to check whether the nodes are in the goal state, but in this case calculating queens in conflict
     not_safe = 0
 
     for i in range(len(queens_state) - 1):
         for j in range(i + 1, len(queens_state)):
-            # check column overlapping
+            # check column conflicts
             if queens_state[i] % no_queen == queens_state[j] % no_queen:
                 not_safe += 1
-            # check diagonal overlapping
+            # check diagonal conflicts
             if abs(queens_state[i] // no_queen - queens_state[j] // no_queen) == abs(
                                     queens_state[i] % no_queen - queens_state[j] % no_queen):
                 not_safe += 1
-            # check row overlapping
+            # check row conflicts
             if queens_state[i] // no_queen == queens_state[j] // no_queen:
                 not_safe += 1
 
     return not_safe
 
 def best_random_neighbour_queens(current_queens, no_queen, current_heuristic_cost):
+    # if there is only one node
     if len(current_queens)==1:
         return current_queens
     current_neighbours = list()
-    #make a combination of one column move for the queen on each row
+    # make the list of random neighbours
     for row_index in range(no_queen*5):
         current_neighbour = random_start_queens(no_queen)
         current_neighbours.append(current_neighbour.copy())
 
     # select the neighbour with the lowest heuristic cost
-    best_neighbour = select_best_neighbour(current_neighbours, no_queen)
-
-    return best_neighbour
+    best_random_neighbour = select_best_neighbour(current_neighbours, no_queen)
+    return best_random_neighbour
 
 def best_neighbour_queens(current_queens, no_queen, current_heuristic_cost):
     if len(current_queens)==1:
         return current_queens
     current_neighbours = list()
-    #make a combination of one column move for the queen on each row
+    # make a combination of one column move for the queen on each row
     for row_index in range(no_queen):
         current_neighbour = current_queens.copy()
         col_set = set()
@@ -115,24 +109,23 @@ def best_neighbour_queens(current_queens, no_queen, current_heuristic_cost):
 
     # select the neighbour with the lowest heuristic cost
     best_neighbour = select_best_neighbour(current_neighbours, no_queen)
-
-        #if new_heuristic_cost < current_heuristic_cost:
-        # current_heuristic_cost = new_heuristic_cost
     return best_neighbour
 
 def select_best_neighbour(current_neighbours, no_queen):
     neighbours_dict = defaultdict()
+    # calculate and sort different neighbours by their heuristic cost
     for current_neighbour in current_neighbours:
         new_heuristic_cost = safe_queens_heuristic_cost(current_neighbour, no_queen)
         neighbours_dict[new_heuristic_cost] = current_neighbour
-    best_neighbour= max(neighbours_dict.items(), key = operator.itemgetter(0))[1]
+    # select the list of queens with the minimum heuristic cost
+    best_neighbour= min(neighbours_dict.items(), key = operator.itemgetter(0))[1]
     return best_neighbour
 
 def random_neighbour_queens(current_queens, no_queen):
     if len(current_queens)==1:
         return current_queens
     current_neighbours = list()
-    #make a combination of one column move for the queen on each row
+    # make a combination of one column move for the queen on each row
     for row_index in range(no_queen):
         current_neighbour = current_queens.copy()
         col_set = set()
@@ -144,27 +137,15 @@ def random_neighbour_queens(current_queens, no_queen):
             new_position = row_index*no_queen+remainder
             current_neighbour[row_index] = new_position
             current_neighbours.append(current_neighbour.copy())
-
     # select a random neighbour from the list
     random_neighbour = random.choice(current_neighbours)
     return random_neighbour
-    # current_neighbour = current_queens
-    # #randomly move columns for the queen on each row
-    # for row_index in range(no_queen):
-    #     left = current_queens[row_index]
-    #     right = current_queens[row_index]
-    #     if current_queens[row_index]%no_queen!=0:
-    #         left = current_queens[row_index]-1
-    #     if current_queens[row_index]%no_queen!=no_queen-1:
-    #         right = current_queens[row_index]+1
-    #     current_neighbour[row_index] = random.choice([left, right])
-    # new_queens = current_neighbour
-    # return new_queens
 
 def print_solutions(result, n_queen):
     while True:
         print("Would you like to print solution(s)? Y/N")
         print_option = input().lower()
+        # print solution if yes
         if print_option.upper()=="Y":
             multi_solutions = False
             if any(isinstance(one_result, list) for one_result in result):
@@ -184,6 +165,7 @@ def make_board(result, n_queen, multiple_solutions):
         if no_solutions > 10:
             no_solutions = 10
         print("Visualising up to %d result..." % no_solutions)
+    # making a board to visualise queens in specific positions
     for i in range(no_solutions):
         if multiple_solutions:
             sub_result = result[i]
