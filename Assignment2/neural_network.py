@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.utils import shuffle
+from sklearn.metrics import accuracy_score
 import math
 import sys
 import os
@@ -31,12 +32,12 @@ class NeuralNetwork:
         self.tst_accuracy = 0
         self.trn_accuracy_list = []
         self.tst_accuracy_list = []
-        self.tst_accuracy_lists = []
 
     def forward(self, x):
         #hidden layer
         self.neth = np.dot(x, self.w1.T) + np.dot(self.b, self.b1.T)
         self.outh = self.sigmoid(self.neth)
+        #print(self.outh)
         #output layer
         self.neto = np.dot(self.outh, self.w2.T) + np.dot(self.b, self.b2.T)
         self.y_hat = self.sigmoid(self.neto)
@@ -101,14 +102,20 @@ class NeuralNetwork:
     def d_sigmoid(self, out):
         return np.multiply(out, (1 - out))
 
+    def tanh(self, x):
+        return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
+
+    def d_tanh(self, out):
+        return 1 - np.power(out, 2)
+
     #relu activation
     def relu(self, x):
         #only x>0 gets passed
-        return abs(x)*(x>0)
+        return np.maximum(0,x)
 
     #relu derivative
     def d_relu(self, out):
-        return 1*(out>0)
+        return (out > 0) * 1
 
     #quadratic loss function i.e. mse
     def quad_loss(self, y):
@@ -119,22 +126,43 @@ class NeuralNetwork:
     def cross_entropy_loss(self, x, y):
         return -(y*np.log(self.y_hat)+(1.-y)*np.log(1.-self.y_hat)).mean()
 
-    def learning_rate_decay(self):
-        return
+    def learning_rate_decay(self, lr, epoch):
+        if epoch == 10:
+            return lr/3.
+        if epoch == 20:
+            return lr/10.
+        else:
+            return lr/10.
 
-    def cal_accuracy(self, x, y):
-        targ = np.argmax(y, axis=1)
+    # def cal_accuracy(self, x, y):
+    #     targ = np.argmax(y, axis=1)
+    #     #print(targ)
+    #     pred = np.argmax(self.y_hat, axis=1)
+    #     #print(pred)
+    #     #check the dimensions
+    #     assert targ.shape == pred.shape, "target dimension not equal to prediction dimension"
+    #     total = np.count_nonzero(targ==pred)
+    #     #print(total)
+    #     return (total/x.shape[0])
+
+    def cal_accuracy_total(self, target, prediction):
+        targ = np.argmax(target, axis=1)
         #print(targ)
-        pred = np.argmax(self.y_hat, axis=1)
+        pred = np.argmax(prediction, axis=1)
         #print(pred)
         #check the dimensions
         assert targ.shape == pred.shape, "target dimension not equal to prediction dimension"
         total = np.count_nonzero(targ==pred)
         #print(total)
-        return (total/x.shape[0])
+        return (total/target.shape[0])
 
     def standardise_data(self, data):
         return (data - data.mean())/data.std()
+
+    # def normalise_batch(self, output):
+    #     sub_mean = output - output.mean()
+    #     output_hat = sub_mean/(np.square(sub_mean).mean()+1e-5)
+    #     out = gamma * output_hat + beta
 
     def save_parameters(self):
         np.savetxt('w1.csv.gz', self.w1, delimiter=',')
@@ -153,12 +181,13 @@ class NeuralNetwork:
 
     def plot_experiments_accuracy(self):
         epoch_list = range(1, self.epochs + 1)
-        graphs = ['r--', 'b-', 'c-', 'y-', 'm-']
+        graphs = ['r-', 'b-', 'c-', 'y-', 'm-']
         start = 0
         for i in range(5):
-            test = self.tst_accuracy_lists[0][start:start+self.epochs]
+            test = self.tst_accuracy_list[start:start+self.epochs]
             plt.plot(epoch_list, test, graphs[i])
             start += self.epochs
+        # plt.legend(['lr = 0.001', 'lr = 0.1', 'lr = 1', 'lr = 10','lr = 100'])
         plt.legend(['bs = 1', 'bs = 5', 'bs = 10', 'bs = 20', 'bs = 100'])
         plt.xlabel('Epoch')
         plt.ylabel('Accuracy')
@@ -166,7 +195,9 @@ class NeuralNetwork:
 
     def train(self, loss, init):
         np.seterr(over='ignore')
-        #for lr in self.lr:
+        lr = self.lr
+        bs = self.bs
+        # for bs in self.bs:
         #to use random initialisation
         if init == "random":
             self.random_init(bs)
@@ -177,30 +208,35 @@ class NeuralNetwork:
         if init == "test":
             self.test_init()
         for epoch in range(self.epochs):
+            self.y_hat_all = np.empty([self.y.shape[0], self.y.shape[1]])
             batch_no = math.ceil(self.input_len/bs)
             for batch in range(batch_no):
                 x = self.x[batch*bs:(batch+1)*bs]
                 x = self.standardise_data(x)
                 y = self.y[batch*bs:(batch+1)*bs]
                 self.forward(x)
-                score = self.cal_accuracy(x, y)
-                self.trn_accuracy += score
+                self.y_hat_all[batch * bs:(batch + 1) * bs] = self.y_hat
+                # score = self.cal_accuracy(x, y)
+                # self.trn_accuracy += score
                 if loss=="quad":
                     self.error = self.quad_loss(y)
                 if loss=="cross_entropy":
                     self.error = self.cross_entropy_loss(x, y)
-
                 if self.bp:
                     self.backward(x, y, lr)
-            self.trn_accuracy = self.trn_accuracy / batch_no
+            self.trn_accuracy = self.cal_accuracy_total(self.y, self.y_hat_all)
             self.trn_accuracy_list.append(self.trn_accuracy)
+            self.y_hat_test_all = np.empty([self.test_y.shape[0], self.test_y.shape[1]])
             self.test(bs)
+            self.tst_accuracy = self.cal_accuracy_total(self.test_y, self.y_hat_test_all)
             self.tst_accuracy_list.append(self.tst_accuracy)
+            if epoch%10==0 and epoch!=0:
+                lr = self.learning_rate_decay(lr, epoch)
             print("Accuracy for epoch %d is %f" % (epoch+1, self.tst_accuracy))
-                # self.save_parameters()
-            #self.tst_accuracy_lists.append(self.tst_accuracy_list)
-        #uncomment the line below to experiment with different batch size
-        #self.plot_experiments_accuracy()
+            # self.save_parameters()
+        #self.tst_accuracy_lists.append(self.tst_accuracy_list)
+    #uncomment the line below to experiment with different batch size
+    # self.plot_experiments_accuracy()
         self.plot_epoch_accuracy()
 
     def test(self, bs):
@@ -210,10 +246,11 @@ class NeuralNetwork:
             x = self.standardise_data(x)
             y = self.test_y[batch * bs:(batch + 1) * bs]
             self.forward(x)
-            score = self.cal_accuracy(x, y)
-            #score = accuracy_score(np.argmax(y, axis=1), np.argmax(self.y_hat, axis=1))
-            self.tst_accuracy += score
-        self.tst_accuracy = self.tst_accuracy/batch_no
+            self.y_hat_test_all[batch * bs:(batch + 1) * bs] = self.y_hat
+            #score = self.cal_accuracy(x, y)
+        #     score = accuracy_score(np.argmax(y, axis=1), np.argmax(self.y_hat, axis=1))
+        #     self.tst_accuracy += score
+        # self.tst_accuracy = self.tst_accuracy/batch_no
 
     def pred(self, bs):
         self.w1 = os.path.join(os.getcwd(), "w1.csv.gz")
@@ -241,21 +278,21 @@ def visualise_individual_data(data):
 
 if __name__=="__main__":
     NInput = 784#sys.argv[1]
-    NHidden = 30#sys.argv[2]
+    NHidden = 90#sys.argv[2]
     NOutput = 10#sys.argv[3]
     trn_x = os.path.join(os.getcwd(), "trainDigitX.csv.gz")#sys.argv[4]
     trn_y = os.path.join(os.getcwd(), "trainDigitY.csv.gz")#sys.argv[5]
     test_x = os.path.join(os.getcwd(), "testDigitX.csv.gz")#sys.argv[6]
     test_y = os.path.join(os.getcwd(), "testDigitY.csv.gz")#sys.argv[7]
     test_x2 = os.path.join(os.getcwd(), "testDigitX2.csv.gz")#sys.argv[6]
-    epochs = 30
+    epochs = 60
     bs = 20#[1, 5, 10, 20, 100]
-    lr = 3.0#[0.001, 0.1, 1.0, 10, 100]
+    lr = 1.0#[0.001, 0.1, 1.0, 10, 100]
     # parta_data = np.array([[0.1, 0.1],[0.1, 0.2]])
     # parta_label = np.array([[1, 0],[0, 1]])
     trn_data = np.array(load_data(trn_x))
     #to visualise an example of data, uncomment the following
-    # visualise_individual_data(trn_data)
+    #visualise_individual_data(trn_data)
     trn_label = np.array(load_data(trn_y))
     trn_data, trn_label = shuffle(trn_data, trn_label)
     test_data = np.array(load_data(test_x))
@@ -263,7 +300,7 @@ if __name__=="__main__":
     nn = NeuralNetwork(trn_data, trn_label, test_data, test_label,
                        NInput, NHidden, NOutput, epochs, bs, lr, True)
     # nn = NeuralNetwork(parta_data, parta_label, parta_data, parta_label,
-    #                    NInput, NHidden, NOutput, epochs, bs, lr, activation, True)
+    #                    NInput, NHidden, NOutput, epochs, bs, lr, True)
     loss_func = "cross_entropy"
     init_method = "kaiming"
     nn.train(loss_func, init_method)
